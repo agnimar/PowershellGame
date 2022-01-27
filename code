@@ -1,0 +1,220 @@
+#OS 1ND
+#Katuko kelione
+$global:vykstaZaidimas = $true
+$global:pergale = $null
+
+function PradinisEkranas()
+{
+    Clear-Host
+    #Perskaitomas failas, kuriame yra pradinio meniu tekstine informacija
+    Get-Content .\pradinisEkranas.txt 
+    #Vykdomas ciklas do...while(), kol bus ivedamas tinkamas pasirinkimas
+    do
+    {
+        $input = Read-Host "`n`nIveskite pasirinkima"
+    }
+    while($input -ne '0' -and $input -ne '1')
+
+    #jeigu zaidejas iveda simboli 0, tai zaidimas isjungiamas
+    if($input -like '0')
+    {
+        $global:vykstaZaidimas = $false
+    }
+    else
+    {
+        #Sukuriamas laikinas failas, kuris tures visa reikalinga tekstine informacija ir bus koreguojamas pagal situacija
+        Get-Content .\informacija.txt | Set-Content laikinas.txt
+        TekstoNuskaitymas
+        Pradzia
+    }
+}
+
+function TekstoNuskaitymas()
+{
+    #Pirmos 15 eiluciu - izangos tekstas
+    Get-Content .\laikinas.txt | select -First 15 | Set-Content izangaInfo.txt -Force
+    #Koreguojamas laikinas failas - istrinamas jau nuskaitytas tekstas
+    $turinys = Get-Content .\laikinas.txt
+    $turinys[15..($turinys.length-1)] | Out-File laikinas.txt -Force
+
+    #tas pats vykdoma su likusiu failu nuskaitant dvieju skirtingu scenariju tekstine informacija
+    Get-Content .\laikinas.txt | select -First 45 | Set-Content turgelioInfo.txt -Force
+    $turinys = Get-Content .\laikinas.txt
+    $turinys[45..($turinys.length-1)] | Out-File laikinas.txt -Force
+
+    Get-Content .\laikinas.txt | select -First 45 | Set-Content konteineriuInfo.txt -Force
+    $turinys = Get-Content .\laikinas.txt
+    $turinys[45..($turinys.length-1)] | Out-File laikinas.txt -Force
+}
+
+#Funkcija naudojama isvesti teksta, kuris visais atvejais yra saugomas 5 eilutese. Teksta isvedus, atnaujinamas paduotas failas $failas
+function Informacija($failas)
+{
+    Clear-Host
+    Get-Content $failas | select -First 5 
+    $turinys = Get-Content $failas
+    $turinys[5..($turinys.length-1)] | Out-File $failas -Force
+}
+
+#Funkcija, kuri padaro situacijos tekstu isvedima.
+function Tekstas($failas)
+{
+    Clear-Host
+    for($i = 0; $i -lt 2; $i++)
+    {
+        Informacija("$failas")
+        Sustabdymas
+    }
+    Informacija("$failas")
+}
+
+#Zaidimo pradzios funkcija, kur pateikiamas pirmas pasirinkimas
+function Pradzia()
+{
+    Tekstas("izangaInfo.txt")
+    Write-Host -ForegroundColor Yellow "`n [A] - Eiti i turgeli"
+    Write-Host -ForegroundColor Blue "`n [B] - Eiti i konteineriu karalyste`n"
+    do
+    {
+        $input = Read-Host "`nIveskite pasirinkima"
+    }
+    while($input -ne 'A' -and $input -ne 'B')
+    
+    #Priklausomai nuo pasirinkimo vykdoma atitinkama funkcija
+     switch($input)
+    {
+        A {Turgelis}
+        B {KonteineriuKaralyste}
+    }
+}
+
+#Eilutese 93-171 skirtingi scenarijai, kuriu kodai parasyti tuo paciu principu, kaip ir funkcijoje Pradzia()
+function Turgelis()
+{
+    Tekstas("turgelioInfo.txt")
+    Write-Host -ForegroundColor Cyan "`n[A] - Bandyti zuvyte pasiekti tyliai"
+    Write-Host -ForegroundColor Magenta "`n[B] - Bandyti zuvyte pagriebti kuo greiciau`n"
+    do
+    {
+        $input = Read-Host "`nIveskite pasirinkima"
+    }
+    while($input -ne 'A' -and $input -ne 'B')
+
+    switch($input)
+    {
+        A {TurgelisTyliai}
+        B {TurgelisGreitai}
+    }
+}
+
+function TurgelisTyliai()
+{
+    Tekstas("turgelioInfo.txt")
+    $global:pergale = $false;
+    Sustabdymas
+    Pabaiga
+}
+
+function TurgelisGreitai()
+{
+    $turinys = Get-Content .\turgelioInfo.txt
+    #Praleidziama 15 eiluciu, kadangi jose saugoma TurgelisTyliai informacija
+    #Tas pats vykdoma ir KonteinerisGreitai funkcijoje
+    $turinys[15..($turinys.length-1)] | Out-File turgelioInfo.txt -Force
+
+    Tekstas("turgelioInfo.txt")
+    $global:pergale = $true;
+    Sustabdymas
+    Pabaiga
+}
+
+function KonteineriuKaralyste()
+{
+    Tekstas("konteineriuInfo.txt")
+    Write-Host -ForegroundColor Cyan "`n[A] - Bandyti zuvyte pasiekti tyliai"
+    Write-Host -ForegroundColor Magenta "`n[B] - Bandyti zuvyte pagriebti kuo greiciau`n"
+    do
+    {
+        $input = Read-Host "`nIveskite pasirinkima"
+    }
+    while($input -ne 'A' -and $input -ne 'B')
+    switch($input)
+    {
+        A {KonteinerisTyliai}
+        B {KonteinerisGreitai}
+    }
+}
+
+function KonteinerisTyliai()
+{
+    Tekstas("konteineriuInfo.txt")
+    $global:pergale = $true;
+    Sustabdymas
+    Pabaiga
+}
+
+function KonteinerisGreitai()
+{
+    $turinys = Get-Content .\konteineriuInfo.txt
+    $turinys[15..($turinys.length-1)] | Out-File konteineriuInfo.txt -Force
+
+    Tekstas("konteineriuInfo.txt")
+    $global:pergale = $false;
+    Sustabdymas
+    Pabaiga
+}
+
+#Pabaigos funkcija, kurioj isvedama arba pergales tekstas, arba pralaimejimo
+function Pabaiga()
+{
+    if($global:pergale)
+    {
+        Clear-Host
+        Write-Host -BackgroundColor Green "`n`n`t`t`tWooohoooo! Katulis sekmingai pagriebe zuvyte :3`t`t`n`t`t`t`t`t`tPuikiai padirbeta!!`t`t`t`t`t`t"
+    }
+    else
+    {
+        Clear-Host
+        Write-Host -BackgroundColor Red "`n`n`t`t`tDeja, katukui nepavyko pasiekti zuvytes..`t`t`n`t`t`t`t`tSekmes kita karta! :)`t`t`t`t`t"
+    }
+    #Istrinami pries tai sukurti failai, kad atlaisvinti vieta.
+    Remove-Item konteineriuInfo.txt, turgelioInfo.txt, izangaInfo.txt, laikinas.txt
+    #Zaidimas baigiamas, todel kintamajam paskiriama false reiksme
+    $global:vykstaZaidimas = $false
+    Sustabdymas
+}
+
+function Atsisveikinimas()
+{
+    Clear-Host
+    #Trumpa animacija 
+    for($i = 0; $i -lt 4; $i++)
+    {
+        Get-Content  .\atsisveikinimas.txt | select -First 13 
+        Sleep 1
+        Clear-Host
+        Get-Content .\atsisveikinimas.txt | select -Last 13
+        Sleep 1
+        Clear-Host
+    }
+    Sustabdymas
+}
+
+function Sustabdymas()
+{
+    #Norejau naudoti ne Read-Key, nes ji naudojant reiktu pirmiausiai ivesti bet koki simboli ir tada paspausti enter. 
+    #Tai buvo vienintelis budas, kaip graziai galejau tai padaryti
+    #Kadangi "$host.ui.RawUI.ReadKey("NoEcho,IncludeKeyDown")" ant powershell ise neveikia :(
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.MessageBox]::Show("`nPaspauskite bet ka, kad testi...")
+}
+
+while($true)
+{
+    PradinisEkranas
+    if(!$global:vykstaZaidimas)
+    {
+        Atsisveikinimas
+        break
+    }
+}
